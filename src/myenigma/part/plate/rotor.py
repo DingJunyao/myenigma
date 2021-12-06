@@ -11,7 +11,7 @@ class Rotor(Plate):
     ):
         """Raise AttributeError if the turnover value is invalid."""
         raise AttributeError(
-            f'turnover "{turnover}" is invaild. '
+            f'turnover "{turnover}" is invalid. '
             f'A letter string in map_source or an int between 0 and {len(map_source) - 1} is required.'
         )
 
@@ -73,12 +73,12 @@ class Rotor(Plate):
 
         :return: Position of the plate.
         """
-        orignal_position = self.position
-        if orignal_position == len(self.map_source) - 1:
+        original_position = self.position
+        if original_position == len(self.map_source) - 1:
             self.position = 0
         else:
             self.position += 1
-        if orignal_position in self.turnover:
+        if original_position in self.turnover:
             if self.left_plate:
                 if self.left_plate.auto_rotatable:
                     self.left_plate.forward()

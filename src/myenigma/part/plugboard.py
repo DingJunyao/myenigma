@@ -1,5 +1,5 @@
 class Plugboard:
-    """Plugboard (Steckerbrett in German) of an Engima."""
+    """Plugboard (Steckerbrett in German) of an Enigma."""
     def __init__(self, parent=None):
         self.map_dict = {}
         self.parent = parent

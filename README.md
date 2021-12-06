@@ -1,10 +1,13 @@
-# enigma
+# myenigma
+
+[![PyPI](https://img.shields.io/pypi/v/myenigma)](https://pypi.org/project/myenigma/) ![PyPI - Downloads](https://img.shields.io/pypi/dm/myenigma)
+
 Python-based Enigma.
 
 ## Install
 
 ```bash
-pip install enigma
+pip install myenigma
 ```
 
 ## Usage
@@ -12,21 +15,21 @@ pip install enigma
 ### Import
 
 ```python
-from enigma import Enigma
+from myenigma import Enigma
 ```
 
 The package also contains some sample plate:
 
 ```python
-from enigma.sample_plate.rotor import rotor_I, rotor_II, rotor_III
-from enigma.sample_plate.reflector import reflector_B
+from myenigma.sample_plate.rotor import rotor_i, rotor_ii, rotor_iii
+from myenigma.sample_plate.reflector import reflector_b
 ```
 ### Defining
 
 Make sure the rotors are from right to left:
 
 ```python
-e = Enigma([rotor_III(), rotor_II(), rotor_I()], reflector_B())
+e = Enigma([rotor_iii(), rotor_ii(), rotor_i()], reflector_b())
 ```
 
 ### Encryption
@@ -59,13 +62,13 @@ assert e.input('XTGHAGDIVUPGBZVQSFMBSGLKVQHQWESYRTSRMOOFGRLE') == 'HELLOWORLDBYT
 You can freely customize your Enigma. For example, customize the circuits of rotors:
 
 ```python
-from enigma.part.plate import Rotor, Reflector
+from myenigma.part.plate import Rotor, Reflector
 
 rotor_I = Rotor('EKMFLGDQVZNTOWYHXUSPAIBRCJ', name='Rotor I', turnover='Q')
 rotor_II = Rotor('AJDKSIRUXBLHWTMCQGZNPYFVOE', name='Rotor II', turnover='E')
 rotor_III = Rotor('BDFHJLCPRTXVZNYEIWGAKMUSQO', name='Rotor III', turnover='V')
 reflector_B = Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT', name='Reflector B')
-e = Enigma([rotor_III(), rotor_II(), rotor_I()], reflector_B())
+e_customize = Enigma([rotor_III, rotor_II, rotor_I], reflector_B)
 # same as e above
 ```
 
@@ -118,6 +121,13 @@ assert e.input('IMKPJAITPZIJNXSCSIJEOEDWZBRMCUOGQXGRJXQPFGHF') == 'HELLOWORLDBYT
 e.unplug('L')
 e.unplug('P')
 ```
+
+# Reference
+
+- [恩尼格玛密码机 - 维基百科，自由的百科全书](https://zh.wikipedia.org/wiki/%E6%81%A9%E5%B0%BC%E6%A0%BC%E7%8E%9B%E5%AF%86%E7%A0%81%E6%9C%BA)
+- [Enigma Sim Manual](http://users.telenet.be/d.rijmenants/Enigma%20Sim%20Manual.pdf)
+- [Enigma Simulator](http://users.telenet.be/d.rijmenants/en/enigmasim.htm)
+- [Enigma Rotor and Umkehrwalze Wirings](http://www.ellsbury.com/ultraenigmawirings.htm)
 
 ## License
 

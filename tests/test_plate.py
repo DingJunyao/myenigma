@@ -1,4 +1,4 @@
-from src.enigma.part.plate.plate import Plate
+from src.myenigma.part.plate.plate import Plate
 
 
 def test_000_plate():

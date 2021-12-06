@@ -1,11 +1,11 @@
-from src.enigma import Enigma
-from src.enigma.part.plate import Rotor, Reflector
-from src.enigma.sample_plate.rotor import rotor_I, rotor_II, rotor_III
-from src.enigma.sample_plate.reflector import reflector_B
+from src.myenigma import Enigma
+from src.myenigma.part.plate import Rotor, Reflector
+from src.myenigma.sample_plate.rotor import rotor_i, rotor_ii, rotor_iii
+from src.myenigma.sample_plate.reflector import reflector_b
 
 
 def test_200_enigma_plug():
-    e = Enigma([rotor_III(), rotor_II(), rotor_I()], reflector_B())
+    e = Enigma([rotor_iii(), rotor_ii(), rotor_i()], reflector_b())
     e.plugboard.plug('L', 'M')
     e.plugboard.plug('O', 'P')
     for rotor in e.rotors:

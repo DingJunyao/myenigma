@@ -1,7 +1,7 @@
 from typing import Union
 
-from src.enigma.part import Plugboard
-from src.enigma.part.plate import Rotor, EntryPlate, Reflector
+from .part import Plugboard
+from .part.plate import Rotor, EntryPlate, Reflector
 
 
 class Enigma:

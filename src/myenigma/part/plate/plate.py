@@ -4,7 +4,7 @@ _ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 
 class Plate:
-    """Plate of an Engima, including Entry Plate, Rotors (Walzen in German) and Reflector (Umkehrwalze in German)."""
+    """Plate of an Enigma, including Entry Plate, Rotors (Walzen in German) and Reflector (Umkehrwalze in German)."""
 
     @staticmethod
     def _map_table_check(map_table: str, map_source: str = _ALPHABET):
@@ -100,7 +100,7 @@ class Plate:
         :param letter: A letter.
         :param letter_from: 'left' or 'right'.
         :return: A letter.
-        :raise AttributeError: Input invaild
+        :raise AttributeError: Input invalid
         """
         if type(letter) != str or len(letter) != 1 or letter not in self.map_source:
             raise AttributeError(f'Input "{letter}" is invalid. A letter string in map_source is required.')
@@ -132,7 +132,7 @@ class Plate:
                 position_int = position
         if position_int is None:
             raise AttributeError(
-                f'position "{position}" is invaild. '
+                f'position "{position}" is invalid. '
                 f'A letter string in map_source or an int between 0 and {len(self.map_source) - 1} is required.'
             )
         self.position = position_int
