@@ -50,37 +50,19 @@ class Enigma:
         :return: String of encrypted result.
         """
         new_string_list = []
-        for letter_index, letter in enumerate(string):
+        for letter in string:
             if not self.rotate_after_type:
                 self.rotors[0].forward()
             if letter in self.plugboard.map_dict:
                 letter = self.plugboard.map_dict[letter]
-                # print(f'Letter[{letter_index}]: {letter}')
-            for rotor_index, rotor in enumerate(self.rotors):
-                # print(rotor_index, 'i', letter)
-                # print(rotor_index, ' <', ''.join(rotor.current_state['right']))
-                # print(rotor_index, '< ', ''.join(rotor.current_state['left']))
+            for rotor in self.rotors:
                 letter = rotor.encrypt(letter, 'right')
-            #     print(rotor_index, 'o', letter)
-            # print('R', 'i', letter)
-            # print('R', '< ', ''.join(self.reflector.current_state['left']))
-            # print('R', '> ', ''.join(self.reflector.current_state['right']))
             letter = self.reflector.encrypt(letter, 'right')
-            # print('R', 'o', letter)
-            for rotor_index, rotor in enumerate(reversed(self.rotors)):
-                # print(rotor_index, 'i', letter)
-                # print(rotor_index, '> ', ''.join(rotor.current_state['left']))
-                # print(rotor_index, ' >', ''.join(rotor.current_state['right']))
+            for rotor in reversed(self.rotors):
                 letter = rotor.encrypt(letter, 'left')
-            #     print(rotor_index, 'o', letter)
-            # print('I', 'i', letter)
-            # print('I', '< ', ''.join(self.entry_plate.current_state['left']))
-            # print('I', ' >', ''.join(self.entry_plate.current_state['right']))
             letter = self.entry_plate.encrypt(letter, 'left')
-            # print('I', 'o', letter)
             if letter in self.plugboard.map_dict:
                 letter = self.plugboard.map_dict[letter]
-                # print(f'Letter[{letter_index}]: {letter}')
             new_string_list.append(letter)
             if self.rotate_after_type:
                 self.rotors[0].forward()

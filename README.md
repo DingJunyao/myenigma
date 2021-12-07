@@ -37,7 +37,6 @@ e = Enigma([rotor_iii(), rotor_ii(), rotor_i()], reflector_b())
 Just input:
 
 ```python
-# Encryption
 assert e.input('HELLOWORLDBYTHEAUTHOROFTHISPACKAGEDINGJUNYAO') == 'ILBDAAMTAZIJNXSCSIJJPDDWZBRCCUPGQXGRJXQOFGHL'
 ```
 
@@ -128,6 +127,7 @@ e.unplug('P')
 - [Enigma Sim Manual](http://users.telenet.be/d.rijmenants/Enigma%20Sim%20Manual.pdf)
 - [Enigma Simulator](http://users.telenet.be/d.rijmenants/en/enigmasim.htm)
 - [Enigma Rotor and Umkehrwalze Wirings](http://www.ellsbury.com/ultraenigmawirings.htm)
+- [恩尼格玛密码机密码加密/解密 - 一个工具箱 - 好用的在线工具都在这里！](http://www.atoolbox.net/Tool.php?Id=993)
 
 ## License
 
