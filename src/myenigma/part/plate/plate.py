@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Optional
 
 _ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -20,7 +20,7 @@ class Plate:
             if letter not in map_table:
                 raise AttributeError(f'"{letter}" not in map table.')
 
-    def __init_init_position_attr_exception(self, init_position: Union[int, str], map_source: str):
+    def __init_init_position_attr_exception(self, init_position: int | str, map_source: str):
         """Raise AttributeError if init_position is invalid."""
         raise AttributeError(
             f'init_position "{init_position}" is invalid. '
@@ -28,7 +28,7 @@ class Plate:
         )
 
     def __init__(
-            self, map_table: str = _ALPHABET, init_position: Union[str, int] = 0, auto_rotatable: bool = False,
+            self, map_table: str = _ALPHABET, init_position: str | int = 0, auto_rotatable: bool = False,
             right_plate=None, left_plate=None, rotate_up: bool = False, name: str = None, map_source: str = _ALPHABET
     ):
         """Defining a plate.
@@ -117,7 +117,7 @@ class Plate:
         else:
             return self.dict_table[letter]
 
-    def set_position(self, position: Union[int, str]):
+    def set_position(self, position: int | str):
         """Set position of the plate.
 
         :param position: Index or letter.

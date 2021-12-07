@@ -1,5 +1,3 @@
-from typing import Union
-
 from .plate import Plate, _ALPHABET
 
 
@@ -7,7 +5,7 @@ class Reflector(Plate):
     """Reflector (Umkehrwalze in German) of an Enigma."""
 
     def __init__(
-            self, map_table: str = _ALPHABET, init_position: Union[str, int] = 0, right_plate: Plate = None,
+            self, map_table: str = _ALPHABET, init_position: str | int = 0, right_plate: Plate = None,
             name: str = None, map_source: str = _ALPHABET
     ):
         """Defining a reflector.

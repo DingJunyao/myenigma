@@ -1,5 +1,3 @@
-from typing import Union
-
 from .part import Plugboard
 from .part.plate import Rotor, EntryPlate, Reflector
 
@@ -8,7 +6,7 @@ class Enigma:
     """An Enigma machine."""
 
     def __init__(
-            self, rotor_list: Union[list[Rotor], tuple[Rotor]], reflector: Reflector, rotate_up: bool = False,
+            self, rotor_list: list[Rotor] | tuple[Rotor], reflector: Reflector, rotate_up: bool = False,
             rotate_after_type: bool = False
     ):
         """Define the Enigma.

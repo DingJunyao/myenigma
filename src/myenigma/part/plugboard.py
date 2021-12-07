@@ -8,7 +8,7 @@ class Plugboard:
         if self.parent is None:
             raise RuntimeError('parent of the Plugboard is None')
 
-    def plug(self, letter_1, letter_2):
+    def plug(self, letter_1: str, letter_2: str):
         if letter_1 == letter_2:
             raise AttributeError('Two letters can\'t be equal')
         for letter in (letter_1, letter_2):
@@ -19,7 +19,7 @@ class Plugboard:
         self.map_dict[letter_1] = letter_2
         self.map_dict[letter_2] = letter_1
 
-    def unplug(self, letter):
+    def unplug(self, letter: str):
         if letter not in self.parent.entry_plate.map_source:
             raise AttributeError(f'"{letter}" is not in map_source')
         if letter not in self.map_dict:

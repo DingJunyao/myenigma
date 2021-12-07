@@ -1,5 +1,3 @@
-from typing import Union
-
 from .plate import Plate, _ALPHABET
 
 
@@ -7,7 +5,7 @@ class Rotor(Plate):
     """Rotor (Walzen in German) of an Enigma."""
 
     def __turnover_attr_exception(
-            self, turnover: Union[int, str, list[Union[int, str]], tuple[Union[int, str]]], map_source: str
+            self, turnover: int | str | list[int | str] | tuple[int | str], map_source: str
     ):
         """Raise AttributeError if the turnover value is invalid."""
         raise AttributeError(
@@ -15,7 +13,7 @@ class Rotor(Plate):
             f'A letter string in map_source or an int between 0 and {len(map_source) - 1} is required.'
         )
 
-    def turnover_single_check_and_standardize(self, turnover_single: Union[int, str], map_source: str) -> int:
+    def turnover_single_check_and_standardize(self, turnover_single: int | str, map_source: str) -> int:
         """Check single turnover value and standardize it.
 
         :return: int: index of the letter.
@@ -30,9 +28,9 @@ class Rotor(Plate):
         self.__turnover_attr_exception(turnover_single, map_source)
 
     def __init__(
-            self, map_table: str = _ALPHABET, init_position: Union[str, int] = 0, auto_rotatable: bool = True,
+            self, map_table: str = _ALPHABET, init_position: int | str = 0, auto_rotatable: bool = True,
             right_plate: Plate = None, left_plate: Plate = None, rotate_up: bool = False, name: str = None,
-            map_source: str = _ALPHABET, turnover: Union[int, str, list[Union[int, str]], tuple[Union[int, str]]] = None
+            map_source: str = _ALPHABET, turnover: int | str | list[int | str] | tuple[int | str] = None
     ):
         """Defining a plate.
 
