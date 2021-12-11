@@ -121,7 +121,7 @@ e.unplug('L')
 e.unplug('P')
 ```
 
-# Reference
+## Reference
 
 - [恩尼格玛密码机 - 维基百科，自由的百科全书](https://zh.wikipedia.org/wiki/%E6%81%A9%E5%B0%BC%E6%A0%BC%E7%8E%9B%E5%AF%86%E7%A0%81%E6%9C%BA)
 - [Enigma Sim Manual](http://users.telenet.be/d.rijmenants/Enigma%20Sim%20Manual.pdf)
