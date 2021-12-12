@@ -38,7 +38,7 @@ Make sure the rotors are from right to left:
 e = Enigma([rotor_iii(), rotor_ii(), rotor_i()], reflector_b())
 ```
 
-### Encryption
+### Encryption / Decryption
 
 Just input:
 
