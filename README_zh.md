@@ -2,58 +2,58 @@
 
 [![PyPI](https://img.shields.io/pypi/v/myenigma)](https://pypi.org/project/myenigma/) ![PyPI - Downloads](https://img.shields.io/pypi/dm/myenigma)
 
-Python-based Enigma.
+基于 Python 的恩尼格玛（Enigma）密码机实现。
 
-[查看中文版](README_zh.md)
+[View in English](README.md)
 
-[A brief tutorial of how to develop it (in Chinese)](https://4ading.com/posts/enigma-in-python)
+[开发这个项目的简单教程](https://4ading.com/posts/enigma-in-python)
 
-## Install
+## 安装
 
 ```bash
 pip install myenigma
 ```
 
-Only supports Python 3.10 or above.
+目前只支持 Python 3.10 及以上版本。
 
-## Usage
+## 使用方法
 
-### Import
+### 导入
 
 ```python
 from myenigma import Enigma
 ```
 
-The package also contains some sample plate:
+模块内提供了一些示例的圆盘（包括转子（`rotor`）和反射器（`reflector`））:
 
 ```python
 from myenigma.sample_plate.rotor import rotor_i, rotor_ii, rotor_iii
 from myenigma.sample_plate.reflector import reflector_b
 ```
-### Defining
+### 定义
 
-Make sure the rotors are from right to left:
+转子从右向左排序：
 
 ```python
 e = Enigma([rotor_iii(), rotor_ii(), rotor_i()], reflector_b())
 ```
 
-### Encryption
+### 加/解密
 
-Just input:
+输入：
 
 ```python
 assert e.input('HELLOWORLDBYTHEAUTHOROFTHISPACKAGEDINGJUNYAO') == 'ILBDAAMTAZIJNXSCSIJJPDDWZBRCCUPGQXGRJXQOFGHL'
 ```
 
-And change the positions of the rotors (Defaults to all origin):
+更改转子位置（默认为全部转到初始位置）：
 
 ```python
 e.set_position()
 assert e.input('ILBDAAMTAZIJNXSCSIJJPDDWZBRCCUPGQXGRJXQOFGHL') == 'HELLOWORLDBYTHEAUTHOROFTHISPACKAGEDINGJUNYAO'
 ```
 
-Number starts from 0, and also from right to left. You can also use letter:
+更改转子位置时，数字从 0 开始，从右向左排序。你也可以使用字母：
 
 ```python
 e.set_position(3, 12, 21)
@@ -62,9 +62,9 @@ e.set_position('D', 12, 21)
 assert e.input('XTGHAGDIVUPGBZVQSFMBSGLKVQHQWESYRTSRMOOFGRLE') == 'HELLOWORLDBYTHEAUTHOROFTHISPACKAGEDINGJUNYAO'
 ```
 
-### Customize
+### 自定义
 
-You can freely customize your Enigma. For example, customize the circuits of rotors:
+你可以自由地自定义你想要的恩尼格玛密码机。比如说，自定义转子的连线（或者说是映射）：
 
 ```python
 from myenigma.part.plate import Rotor, Reflector
@@ -74,10 +74,10 @@ rotor_II = Rotor('AJDKSIRUXBLHWTMCQGZNPYFVOE', name='Rotor II', turnover='E')
 rotor_III = Rotor('BDFHJLCPRTXVZNYEIWGAKMUSQO', name='Rotor III', turnover='V')
 reflector_B = Reflector('YRUHQSLDPXNGOKMIEBFZCWVJAT', name='Reflector B')
 e_customize = Enigma([rotor_III, rotor_II, rotor_I], reflector_B)
-# same as e above
+# 和上面的 e 一样
 ```
 
-A tiny Enigma:
+一个微型的恩尼格玛密码机：
 
 ```python
 map_source = 'ASDF'
@@ -95,7 +95,7 @@ e_custom_1.set_position()
 assert e_custom_1.input('SD') == 'AA'
 ```
 
-And even in other character!
+甚至可以用别的字符！
 
 ```python
 map_source_2 = '甲乙丙丁'
@@ -113,9 +113,9 @@ e_custom_2.set_position()
 assert e_custom_2.input('乙丙') == '甲甲'
 ```
 
-### Plugboard
+### 接线板
 
-Plugboard is also supported:
+本模块也支持接线板：
 
 ```python
 e.plugboard.plug('L', 'M')
@@ -127,7 +127,7 @@ e.unplug('L')
 e.unplug('P')
 ```
 
-## Reference
+## 参考资料
 
 - [恩尼格玛密码机 - 维基百科，自由的百科全书](https://zh.wikipedia.org/wiki/%E6%81%A9%E5%B0%BC%E6%A0%BC%E7%8E%9B%E5%AF%86%E7%A0%81%E6%9C%BA)
 - [Enigma Sim Manual](http://users.telenet.be/d.rijmenants/Enigma%20Sim%20Manual.pdf)
@@ -135,6 +135,6 @@ e.unplug('P')
 - [Enigma Rotor and Umkehrwalze Wirings](http://www.ellsbury.com/ultraenigmawirings.htm)
 - [恩尼格玛密码机密码加密/解密 - 一个工具箱 - 好用的在线工具都在这里！](http://www.atoolbox.net/Tool.php?Id=993)
 
-## License
+## 协议
 
-MIT License.
+MIT 协议。
