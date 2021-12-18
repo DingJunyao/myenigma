@@ -6,6 +6,8 @@
 
 [View README in English](README.md)
 
+[在线演示](https://myenigma_demo.4ading.com/)
+
 [开发这个项目的简单教程](https://4ading.com/posts/enigma-in-python)
 
 ## 安装
