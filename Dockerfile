@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 EXPOSE 8080
 
 # Define environment variable
-ENV PYTHONPATH $(pwd)
+ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Run app.py when the container launches
 CMD ["python", "web_demo/web_demo.py"]
