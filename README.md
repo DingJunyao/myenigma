@@ -6,8 +6,6 @@ Python-based Enigma.
 
 [查看中文版 README](README_zh.md)
 
-[Online demo](https://myenigma_demo.4ading.com/)
-
 [A brief tutorial of how to develop it (in Chinese)](https://4ading.com/posts/enigma-in-python)
 
 ## Install
