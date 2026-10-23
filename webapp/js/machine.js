@@ -3,6 +3,7 @@
 // and plugboard.
 
 import { state, defOf, currentAlphabet, KEYBOARD_LAYOUTS } from './store.js';
+import { t } from './i18n.js';
 
 const CABLE_COLORS = [
   '#8a8f98', '#a34d3d', '#3d6ea3', '#3d8f5f', '#a3863d',
@@ -190,7 +191,7 @@ export class MachineUI {
         const socket = el('button', 'plug-socket', `<span class="socket-hole"></span><span class="socket-letter">${ch}</span>`);
         socket.type = 'button';
         socket.dataset.letter = ch;
-        socket.title = `插线板 ${ch}`;
+        socket.title = t('machine.socket.title', `插线板 ${ch}`, { c: ch });
         socket.addEventListener('click', () => this.onPlugClick(ch));
         rowEl.appendChild(socket);
       }
@@ -260,10 +261,10 @@ export class MachineUI {
     unit.dataset.slot = String(slotIndex);
 
     const disc = el('div', 'rotor-disc');
-    disc.title = '点击更换 / 取出齿轮，滚轮或箭头调节位置';
+    disc.title = t('machine.disc.title', '点击更换 / 取出齿轮，滚轮或箭头调节位置');
     disc.innerHTML = `
       <div class="rotor-ring"></div>
-      <div class="rotor-notch" title="转换点（步进经过此字符时带动左侧齿轮）"></div>
+      <div class="rotor-notch" title="${t('machine.notch.title', '转换点（步进经过此字符时带动左侧齿轮）')}"></div>
       <div class="rotor-window">
         <div class="rotor-drum">
           <span class="drum-line"></span>
@@ -285,11 +286,11 @@ export class MachineUI {
     const controls = el('div', 'rotor-controls');
     const up = el('button', 'rotor-turn', '▲');
     up.type = 'button';
-    up.title = '转动一格';
+    up.title = t('machine.step', '转动一格');
     up.addEventListener('click', () => this.handlers.onTurn(slotIndex, 1));
     const down = el('button', 'rotor-turn', '▼');
     down.type = 'button';
-    down.title = '反转一格';
+    down.title = t('machine.back', '反转一格');
     down.addEventListener('click', () => this.handlers.onTurn(slotIndex, -1));
     controls.append(up, down);
 
@@ -423,7 +424,9 @@ export class MachineUI {
         socket.classList.toggle('armed', this.armedPlug === ch);
       });
       this.drawCables();
-      this.els.plugCount.textContent = `${state.plugs.length}/${MAX_PLUGS} · 剩余连线 ${left}`;
+      this.els.plugCount.textContent = t('plug.count', '{n}/{max} · 剩余连线 {left}', {
+        n: state.plugs.length, max: MAX_PLUGS, left,
+      });
     } else {
       this.els.altPlugs.querySelectorAll('.alt-plug').forEach((plug) => {
         const ch = plug.dataset.letter;
@@ -432,8 +435,8 @@ export class MachineUI {
       });
       const pairs = state.plugs.map((p) => `${p[0]}–${p[1]}`).join('　');
       this.els.altPairs.textContent = pairs
-        ? `已连线：${pairs}（剩余 ${left} 根）`
-        : `尚未接线（剩余 ${left} 根）`;
+        ? t('plugs.some', `已连线：{pairs}（剩余 {left} 根）`, { pairs, left })
+        : t('plugs.none', `尚未接线（剩余 {left} 根）`, { left });
     }
   }
 

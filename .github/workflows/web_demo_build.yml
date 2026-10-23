@@ -55,6 +55,9 @@ jobs:
       - name: Smoke test keyboard rows
         run: node scripts/keyboard_smoke.mjs
 
+      - name: Check i18n keys
+        run: node scripts/i18n_check.mjs
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

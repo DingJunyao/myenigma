@@ -78,7 +78,10 @@ button { font-family: inherit; }
 
 .toolbar-wrap { position: relative; }
 
-.menu-btn { display: none; font-size: 16px; line-height: 1; }
+/* Specificity above `.btn` (which sets display:inline-block later in this
+   file): the hamburger must stay hidden on wide screens. The button lives
+   inside .toolbar-wrap as a sibling of the toolbar. */
+.toolbar-wrap .menu-btn { display: none; font-size: 16px; line-height: 1; }
 
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -1102,7 +1105,7 @@ button { font-family: inherit; }
   .topbar { padding: 10px 12px; gap: 8px; flex-direction: row; justify-content: space-between; }
   .brand h1 { font-size: 16px; }
   .brand h1 small { font-size: 9px; letter-spacing: 2px; }
-  .menu-btn { display: inline-block; }
+  .toolbar-wrap .menu-btn { display: inline-block; }
   .toolbar {
     display: none;
     position: absolute;
@@ -1120,7 +1123,7 @@ button { font-family: inherit; }
     z-index: 90;
   }
   .toolbar.open { display: flex; }
-  .toolbar .btn { text-align: left; }
+  .toolbar .btn { text-align: left; padding: 6px 9px; font-size: 12px; }
   .toolbar .btn { padding: 6px 9px; font-size: 12px; }
 
   #app { padding: 4px 8px 24px; }

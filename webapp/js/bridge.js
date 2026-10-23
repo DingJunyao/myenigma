@@ -8,6 +8,8 @@
 // The myenigma wheel is installed from wheels/ when the site was built with
 // scripts/vendor_webapp.py, otherwise through micropip from PyPI.
 
+import { t } from './i18n.js';
+
 const PYODIDE_VERSION = '314.0.1';
 
 // Pyodide resolves `indexURL` differently for dynamic imports (relative to
@@ -15,7 +17,7 @@ const PYODIDE_VERSION = '314.0.1';
 const LOCAL_BASE = new URL('pyodide/', document.baseURI).href;
 
 const PYODIDE_SOURCES = [
-  { label: '本地 runtime', base: LOCAL_BASE },
+  { label: 'local', base: LOCAL_BASE },
   { label: 'jsDelivr', base: `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/` },
   { label: 'unpkg', base: `https://unpkg.com/pyodide@${PYODIDE_VERSION}/` },
 ];
@@ -28,7 +30,7 @@ function withTimeout(promise, ms, label) {
   return Promise.race([
     promise,
     new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(`${label}超时（${Math.round(ms / 1000)} 秒）`)), ms);
+      setTimeout(() => reject(new Error(`${label} ${t('boot.timeout', 'timeout ({s}s)', { s: Math.round(ms / 1000) })}`)), ms);
     }),
   ]);
 }
@@ -39,7 +41,7 @@ async function installLocalWheel(pyodide, progress) {
     if (!meta.ok) return false;
     const { wheel } = await meta.json();
     if (!wheel) return false;
-    progress(`正在加载本地 myenigma wheel（${wheel}）…`);
+    progress(t('boot.wheel', `正在加载本地 myenigma wheel（{wheel}）…`, { wheel }));
     const response = await fetch('wheels/' + wheel);
     if (!response.ok) return false;
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -60,38 +62,40 @@ if '/tmp/pylib' not in sys.path:
 }
 
 async function installViaMicropip(pyodide, progress) {
-  progress('正在从 PyPI 安装 myenigma…');
+  progress(t('boot.micropip', '正在从 PyPI 安装 myenigma…'));
   await pyodide.loadPackage('micropip');
   const micropip = pyodide.pyimport('micropip');
   await micropip.install('myenigma');
 }
 
 async function trySource(source, progress) {
-  progress(`正在从 ${source.label} 加载 Pyodide…`);
+  progress(t('boot.pyodide', '正在从 {src} 加载 Pyodide…', { src: source.label }));
   const { loadPyodide } = await withTimeout(
     import(/* @vite-ignore */ source.base + 'pyodide.mjs'),
     SCRIPT_TIMEOUT,
-    `${source.label} 脚本`,
+    source.label,
   );
   const pyodide = await withTimeout(
     loadPyodide({ indexURL: source.base }),
     RUNTIME_TIMEOUT,
-    `${source.label} 运行时`,
+    source.label,
   );
 
   if (!(await installLocalWheel(pyodide, progress))) {
-    await withTimeout(installViaMicropip(pyodide, progress), RUNTIME_TIMEOUT, 'PyPI 安装');
+    await withTimeout(installViaMicropip(pyodide, progress), RUNTIME_TIMEOUT, 'PyPI');
   }
 
-  progress('正在初始化桥接 API…');
+  progress(t('boot.bridge', '正在初始化桥接 API…'));
   const response = await fetch('python/enigma_api.py');
-  if (!response.ok) throw new Error(`无法加载 python/enigma_api.py (HTTP ${response.status})`);
+  if (!response.ok) {
+    throw new Error(t('boot.apiFail', '无法加载 python/enigma_api.py（HTTP {code}）', { code: response.status }));
+  }
   await pyodide.runPythonAsync(await response.text());
 
   const api = {};
   for (const name of API_FUNCTIONS) {
     const fn = pyodide.globals.get(name);
-    if (!fn) throw new Error(`桥接缺少函数 ${name}`);
+    if (!fn) throw new Error(`bridge: missing ${name}`);
     api[name] = (...args) => JSON.parse(fn(...args));
   }
   return api;
@@ -106,10 +110,10 @@ export async function bootBridge(onProgress) {
     } catch (err) {
       lastError = err;
       console.warn(`Pyodide source "${source.label}" failed:`, err);
-      progress(`${source.label} 不可用，尝试下一个来源…`);
+      progress(t('boot.next', '{src} 不可用，尝试下一个来源…', { src: source.label }));
     }
   }
   throw new Error(
-    lastError ? `无法加载 Pyodide：${lastError.message}` : '无法加载 Pyodide（未知错误）',
+    lastError ? t('boot.failed', '无法加载 Pyodide：{msg}', { msg: lastError.message }) : 'Pyodide failed',
   );
 }

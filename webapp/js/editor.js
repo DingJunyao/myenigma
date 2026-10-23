@@ -1,6 +1,7 @@
 // editor.js - inventory picker, rotor/reflector editor, help dialog and toasts.
 
 import { state, SAMPLE_ROTORS, SAMPLE_REFLECTORS, defOf, newCustomId, currentAlphabet, AZ } from './store.js';
+import { t } from './i18n.js';
 
 const callbacks = {
   onInstallRotor: null,
@@ -66,11 +67,13 @@ function randomReflectorWiring(alphabet) {
 function wiringError(mapTable, mapSource) {
   const src = Array.from(mapSource);
   const tbl = Array.from(mapTable);
-  if (!mapSource || new Set(src).size !== src.length) return '字母表必须由互不相同的字符组成';
-  if (tbl.length !== src.length) return `接线长度必须为 ${src.length}`;
-  if (new Set(tbl).size !== tbl.length) return '接线字符不能重复';
+  if (!mapSource || new Set(src).size !== src.length) {
+    return t('editor.err.charset', '字母表必须由互不相同的字符组成');
+  }
+  if (tbl.length !== src.length) return t('editor.err.length', '接线长度必须为 {n}', { n: src.length });
+  if (new Set(tbl).size !== tbl.length) return t('editor.err.repeat', '接线字符不能重复');
   for (const c of tbl) {
-    if (!src.includes(c)) return `接线中出现了字母表之外的字符 "${c}"`;
+    if (!src.includes(c)) return t('editor.err.foreign', '接线中出现了字母表之外的字符 "{c}"', { c });
   }
   return null;
 }
@@ -80,11 +83,14 @@ function wiringError(mapTable, mapSource) {
 function plateCard(def, type, context) {
   const card = document.createElement('div');
   card.className = 'plate-card';
+  const turnoverText = def.turnover && def.turnover.length
+    ? def.turnover.join(' / ')
+    : t('card.turnover.default', '默认（最后一个字符）');
   const turnoverHtml = type === 'rotor'
-    ? `<div class="card-row small">转换点：${def.turnover && def.turnover.length ? def.turnover.join(' / ') : '默认（最后一个字符）'}</div>`
+    ? `<div class="card-row small">${t('card.turnover', '转换点：{t}', { t: turnoverText })}</div>`
     : '';
   const alphaBadge = def.mapSource !== AZ
-    ? `<span class="alpha-badge">字母表 ${def.mapSource}</span>`
+    ? `<span class="alpha-badge">${t('card.alphabet', '字母表 {a}', { a: def.mapSource })}</span>`
     : '';
   card.innerHTML = `
     <div class="card-head"><b>${def.name}</b>${alphaBadge}</div>
@@ -95,31 +101,33 @@ function plateCard(def, type, context) {
   if (type === 'rotor') {
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary';
-    btn.textContent = context && context.slot !== undefined ? `装入第 ${context.slot + 1} 槽` : '装入';
+    btn.textContent = context && context.slot !== undefined
+      ? t('install.slot', '装入第 {n} 槽', { n: context.slot + 1 })
+      : t('install', '装入');
     btn.addEventListener('click', () => callbacks.onInstallRotor(def, context));
     actions.appendChild(btn);
   } else {
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary';
-    btn.textContent = '使用此反射板';
+    btn.textContent = t('use', '使用此反射板');
     btn.addEventListener('click', () => callbacks.onInstallReflector(def));
     actions.appendChild(btn);
   }
   if (def.id && String(def.id).startsWith('c')) {
     const edit = document.createElement('button');
     edit.className = 'btn';
-    edit.textContent = '编辑';
+    edit.textContent = t('edit', '编辑');
     edit.addEventListener('click', () => openEditor(type, def, context));
     const del = document.createElement('button');
     del.className = 'btn btn-danger';
-    del.textContent = '删除';
+    del.textContent = t('delete', '删除');
     del.addEventListener('click', () => {
       if (type === 'rotor' && state.slots.includes(def.id)) {
-        toast('该齿轮正在机器上使用，请先更换下来', true);
+        toast(t('toast.inUse.rotor', '该齿轮正在机器上使用，请先更换下来'), true);
         return;
       }
       if (type === 'reflector' && state.reflector === def.id) {
-        toast('该反射板正在使用中，无法删除', true);
+        toast(t('toast.inUse.reflector', '该反射板正在使用中，无法删除'), true);
         return;
       }
       if (type === 'rotor') {
@@ -128,7 +136,7 @@ function plateCard(def, type, context) {
         state.customReflectors = state.customReflectors.filter((d) => d.id !== def.id);
       }
       callbacks.onPersist();
-      toast(`已删除 ${def.name}`);
+      toast(t('toast.deleted', '已删除 {name}', { name: def.name }));
       openInventory(type, context); // refresh list
     });
     actions.append(edit, del);
@@ -144,15 +152,17 @@ export function openInventory(type, context = {}) {
   const isRotor = type === 'rotor';
 
   title.textContent = isRotor
-    ? (context.slot !== undefined ? `更换第 ${context.slot + 1} 槽齿轮` : '齿轮仓库')
-    : '反射板仓库';
+    ? (context.slot !== undefined
+      ? t('inventory.slot', '更换第 {n} 槽齿轮', { n: context.slot + 1 })
+      : t('inventory.rotors', '齿轮仓库'))
+    : t('inventory.reflectors', '反射板仓库');
   grid.innerHTML = '';
   const samples = isRotor ? SAMPLE_ROTORS : SAMPLE_REFLECTORS;
   const customs = isRotor ? state.customRotors : state.customReflectors;
   for (const def of customs) grid.appendChild(plateCard(def, type, context));
   for (const def of samples) grid.appendChild(plateCard(def, type, context));
 
-  newBtn.textContent = isRotor ? '＋ 新建齿轮' : '＋ 新建反射板';
+  newBtn.textContent = isRotor ? t('inventory.newRotor', '＋ 新建齿轮') : t('inventory.newReflector', '＋ 新建反射板');
   newBtn.onclick = () => openEditor(type, null, context);
   dlg.showModal();
 }
@@ -179,8 +189,8 @@ export function openEditor(type, def = null, context = {}) {
   const dlg = document.getElementById('dlg-editor');
   const isRotor = type === 'rotor';
   document.getElementById('editor-title').textContent = isRotor
-    ? (def ? '编辑齿轮' : '新建齿轮')
-    : (def ? '编辑反射板' : '新建反射板');
+    ? (def ? t('editor.title.rotorEdit', '编辑齿轮') : t('editor.title.rotorNew', '新建齿轮'))
+    : (def ? t('editor.title.reflectorEdit', '编辑反射板') : t('editor.title.reflectorNew', '新建反射板'));
   const defaultAlphabet = isRotor && context.slot !== undefined
     ? defOf(state.slots[context.slot]).mapSource
     : currentAlphabet();
@@ -194,7 +204,9 @@ export function openEditor(type, def = null, context = {}) {
 
   const selectedTurnover = new Set(def && def.turnover ? def.turnover : []);
   nameInput.value = def ? def.name
-    : isRotor ? `Custom Rotor ${state.customRotors.length + 1}` : `Custom Reflector ${state.customReflectors.length + 1}`;
+    : isRotor
+      ? t('editor.defaultRotorName', '自定义齿轮 {n}', { n: state.customRotors.length + 1 })
+      : t('editor.defaultReflectorName', '自定义反射板 {n}', { n: state.customReflectors.length + 1 });
   sourceInput.value = def ? def.mapSource : defaultAlphabet;
   tableInput.value = def ? def.mapTable : Array.from(sourceInput.value).join('');
   message.textContent = '';
@@ -213,7 +225,7 @@ export function openEditor(type, def = null, context = {}) {
 
   const refreshWiringHint = () => {
     const err = wiringError(tableInput.value, sourceInput.value.trim());
-    message.textContent = err || '✓ 接线有效';
+    message.textContent = err || t('editor.valid', '✓ 接线有效');
     message.classList.toggle('ok', !err);
   };
   refreshWiringHint();
@@ -251,7 +263,7 @@ export function openEditor(type, def = null, context = {}) {
     const src = sourceInput.value.trim();
     const wiring = isRotor ? randomRotorWiring(src) : randomReflectorWiring(src);
     if (wiring === null) {
-      toast('随机反射板需要偶数个字符的字母表', true);
+      toast(t('editor.err.oddRandom', '随机反射板需要偶数个字符的字母表'), true);
       return;
     }
     tableInput.value = wiring;

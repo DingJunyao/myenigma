@@ -1,3 +1,4 @@
+# Legacy pip installer for dev tooling. The project itself uses uv:
+#   uv sync --group dev   (deps + pytest)
+#   uv build              (sdist + wheel)
 pytest
-build
-twine

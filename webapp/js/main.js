@@ -8,9 +8,11 @@ import {
 } from './store.js';
 import { MachineUI, sfx } from './machine.js';
 import { openInventory, openEditor, configureEditor, toast } from './editor.js';
+import { applyI18n, setLang, getLang, t } from './i18n.js';
 
 let api = null;
 let engineReady = false; // Pyodide + bridge loaded
+let engineInfo = null;
 
 const TYPE_INTERVAL = 80; // ms per character when replaying pasted text
 let typing = false;
@@ -45,8 +47,10 @@ function syncReadiness() {
       .map((id) => defOf(id))
       .filter((d) => d.mapSource !== refAlpha)
       .map((d) => d.name);
-    hint.textContent = `⚠ 字母表未统一：反射板为「${refAlpha}」，齿轮 [${mismatched.join('、')}] 与之不符。`
-      + '请在齿轮仓库中安装同字母表的齿轮，安装齐全后键盘/灯盘/插线板会自动启用。';
+    hint.textContent = t('ready.hint', '⚠ 字母表未统一：反射板为「{ref}」，齿轮 [{list}] 与之不符。请在齿轮仓库中安装同字母表的齿轮，安装齐全后键盘/灯盘/插线板会自动启用。', {
+      ref: refAlpha,
+      list: mismatched.join('、'),
+    });
   }
 }
 
@@ -63,7 +67,7 @@ function pressKey(letter) {
   try {
     res = api.api_press(JSON.stringify(buildConfig()), letter);
   } catch (err) {
-    toast('引擎错误：' + err.message, true);
+    toast(t('toast.engine', '引擎错误：{msg}', { msg: err.message }), true);
     return;
   }
   if (res.error) {
@@ -79,13 +83,13 @@ function pressKey(letter) {
 
 function feedText(text) {
   if (!engineReady || !machineReady()) {
-    toast('字母表未统一，暂不能输入', true);
+    toast(t('toast.notReady.input', '字母表未统一，暂不能输入'), true);
     return;
   }
   const alphabet = currentAlphabet();
   const chars = Array.from(String(text).toUpperCase()).filter((c) => alphabet.includes(c));
   if (!chars.length) {
-    toast('粘贴的文本不包含当前字母表中的字符', true);
+    toast(t('toast.noChars', '粘贴的文本不包含当前字母表中的字符'), true);
     return;
   }
   for (const ch of chars) typeQueue.push(ch); // no length limit
@@ -121,7 +125,7 @@ function turnRotor(slot, delta) {
 
 function plugPair(a, b) {
   if (state.plugs.length >= 10) {
-    toast('插线板最多同时使用 10 根连线', true);
+    toast(t('toast.plugMax', '插线板最多同时使用 10 根连线'), true);
     ui.renderPlugs();
     return;
   }
@@ -155,8 +159,8 @@ function installRotor(def, context) {
   syncReadiness();
   document.getElementById('dlg-inventory').close();
   toast(machineReady()
-    ? `已将 "${def.name}" 装入第 ${slot + 1} 槽`
-    : `已装入 "${def.name}"；字母表统一后启用键盘`);
+    ? t('toast.installed', '已将 "{name}" 装入第 {n} 槽', { name: def.name, n: slot + 1 })
+    : t('toast.installedPartial', '已装入 "{name}"；字母表统一后启用键盘', { name: def.name }));
   return true;
 }
 
@@ -175,8 +179,8 @@ function installReflector(def) {
   syncReadiness();
   document.getElementById('dlg-inventory').close();
   toast(machineReady()
-    ? `已换用 ${def.name}`
-    : `已换用 ${def.name}；安装同字母表齿轮后启用键盘`);
+    ? t('toast.used', '已换用 {name}', { name: def.name })
+    : t('toast.usedPartial', '已换用 {name}；安装同字母表齿轮后启用键盘', { name: def.name }));
   return true;
 }
 
@@ -197,7 +201,7 @@ function saveRotor(def, context) {
   if (context && context.slot !== undefined) {
     return installRotor(def, context);
   }
-  toast(`已保存齿轮 "${def.name}"`);
+  toast(t('toast.savedRotor', '已保存齿轮 "{name}"', { name: def.name }));
   return true;
 }
 
@@ -207,32 +211,32 @@ function saveReflector(def) {
   }
   putCustomPart(state.customReflectors, def);
   persistState();
-  toast(`已保存反射板 "${def.name}"，可在反射板仓库中选用`);
+  toast(t('toast.savedReflector', '已保存反射板 "{name}"，可在反射板仓库中选用', { name: def.name }));
   return true;
 }
 
 function addSlot() {
   if (state.slots.length >= 4) {
-    toast('最多支持 4 个齿轮（M4 军用型）', true);
+    toast(t('toast.slotMax', '最多支持 4 个齿轮（M4 军用型）'), true);
     return;
   }
   const candidates = compatibleRotors();
   const unused = candidates.find((d) => !state.slots.includes(d.id));
   const pick = unused || candidates[0];
   if (!pick) {
-    toast('仓库中没有与当前字母表兼容的齿轮，请新建一个', true);
+    toast(t('toast.noCompatible', '仓库中没有与当前字母表兼容的齿轮，请新建一个'), true);
     return;
   }
   state.slots.push(pick.id); // new slot becomes the leftmost
   state.positions.push(0);
   persistState();
   ui.renderState();
-  toast(`已加装 "${pick.name}"（最左侧）`);
+  toast(t('toast.added', '已加装 "{name}"（最左侧）', { name: pick.name }));
 }
 
 function removeSlot() {
   if (state.slots.length <= 1) {
-    toast('至少要保留一个齿轮', true);
+    toast(t('toast.minOne', '至少要保留一个齿轮'), true);
     return;
   }
   const removed = defOf(state.slots.pop()).name;
@@ -240,7 +244,7 @@ function removeSlot() {
   persistState();
   ui.renderState();
   syncReadiness();
-  toast(`已拆下 ${removed}`);
+  toast(t('toast.removed', '已拆下 {name}', { name: removed }));
 }
 
 /* ---------- toolbar actions ---------- */
@@ -250,12 +254,12 @@ function zeroPositions() {
   ui.lampOffAll();
   ui.renderPositions();
   persistState();
-  toast('齿轮已全部归零');
+  toast(t('toast.zeroed', '齿轮已全部归零'));
 }
 
 function randomize() {
   if (!machineReady()) {
-    toast('字母表未统一，暂不能随机配置', true);
+    toast(t('toast.notReady.random', '字母表未统一，暂不能随机配置'), true);
     return;
   }
   const rotors = compatibleRotors();
@@ -277,7 +281,7 @@ function randomize() {
   ui.setAlphabet(currentAlphabet());
   ui.renderState();
   persistState();
-  toast('已生成随机配置');
+  toast(t('toast.randomized', '已生成随机配置'));
 }
 
 function factoryReset() {
@@ -286,7 +290,7 @@ function factoryReset() {
   ui.setAlphabet(currentAlphabet());
   ui.renderState();
   tapeClear();
-  toast('已恢复默认配置（自定义齿轮保留）');
+  toast(t('toast.factory', '已恢复默认配置（自定义齿轮保留）'));
 }
 
 /* ---------- paper tape (plaintext line above, ciphertext line below) ---------- */
@@ -302,7 +306,7 @@ function renderTape() {
   const plainEl = document.getElementById('tape-plain');
   const cipherEl = document.getElementById('tape-cipher');
   if (!tape.plain) {
-    plainEl.innerHTML = '<span class="tape-hint">敲击键盘，或直接在页面上粘贴文本开始加密</span>';
+    plainEl.innerHTML = `<span class="tape-hint">${t('tape.hint', '敲击键盘，或直接在页面上粘贴文本开始加密')}</span>`;
     cipherEl.innerHTML = '';
   } else {
     const truncated = tape.plain.length > TAPE_DISPLAY_LIMIT;
@@ -319,14 +323,14 @@ function renderTape() {
 
 async function copyTape(kind) {
   const text = kind === 'plain' ? tape.plain : tape.cipher;
-  const label = kind === 'plain' ? '明文' : '密文';
+  const label = kind === 'plain' ? t('label.plain', '明文') : t('label.cipher', '密文');
   if (!text) {
-    toast('纸带还是空的', true);
+    toast(t('toast.tapeEmpty', '纸带还是空的'), true);
     return;
   }
   try {
     await navigator.clipboard.writeText(text);
-    toast(`已复制${label}（${text.length} 个字符）`);
+    toast(t('toast.copied', '已复制{label}（{n} 个字符）', { label, n: text.length }));
   } catch (err) {
     // Older iOS Safari / non-secure contexts (e.g. LAN http): temporary textarea.
     const area = document.createElement('textarea');
@@ -340,9 +344,9 @@ async function copyTape(kind) {
     if (area.setSelectionRange) area.setSelectionRange(0, area.value.length);
     try {
       document.execCommand('copy');
-      toast(`已复制${label}`);
+      toast(t('toast.copied', '已复制{label}（{n} 个字符）', { label, n: text.length }));
     } catch (fallbackError) {
-      toast('复制失败，请手动选择文本', true);
+      toast(t('toast.copyFail', '复制失败，请手动选择文本'), true);
     }
     area.remove();
   }
@@ -379,6 +383,31 @@ function enableDragScroll(el) {
   }, { passive: false });
 }
 
+function paintSound() {
+  const soundBtn = document.getElementById('btn-sound');
+  if (!soundBtn) return;
+  soundBtn.textContent = state.sound ? t('sound.on', '🔊 声音开') : t('sound.off', '🔇 声音关');
+}
+
+function updateFooter() {
+  if (!engineInfo) return;
+  document.getElementById('footer-info').textContent =
+    t('footer.engine', '加密引擎 myenigma v{v} · CPython {py} / Pyodide (WASM)，纯前端无后端', {
+      v: engineInfo.myenigma, py: engineInfo.python,
+    });
+}
+
+function refreshTexts() {
+  ui.setAlphabet(currentAlphabet());
+  ui.renderState();
+  syncReadiness();
+  renderTape();
+  paintSound();
+  updateFooter();
+  fitScale();
+}
+window.addEventListener('langchange', refreshTexts);
+
 function tapeAppend(input, output) {
   tape.plain += input;
   tape.cipher += output; // keep everything: copy must include the whole message
@@ -410,7 +439,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || document.querySelector('dialog[open]')) return;
   if (typing) {
     cancelTyping();
-    toast('已停止输入');
+    toast(t('toast.stopped', '已停止输入'));
     return;
   }
   ui.disarmPlug();
@@ -461,16 +490,18 @@ function bindToolbar() {
   document.getElementById('tape-clear').addEventListener('click', tapeClear);
   document.getElementById('tape-copy-plain').addEventListener('click', () => copyTape('plain'));
   document.getElementById('tape-copy-cipher').addEventListener('click', () => copyTape('cipher'));
-  enableDragScroll(document.getElementById('tape-scroll'));
-  const soundBtn = document.getElementById('btn-sound');
-  const paintSound = () => {
-    soundBtn.textContent = state.sound ? '🔊 声音开' : '🔇 声音关';
-  };
+  enableDragScroll(document.getElementById('tape-scroll'));  const soundBtn = document.getElementById('btn-sound');
   paintSound();
   soundBtn.addEventListener('click', () => {
     state.sound = !state.sound;
     persistState();
     paintSound();
+  });
+  const langSelect = document.getElementById('opt-lang');
+  langSelect.value = getLang();
+  langSelect.addEventListener('change', () => {
+    setLang(langSelect.value);
+    refreshTexts();
   });
   // Mechanism switches (mirror the Enigma constructor flags).
   const rotateUp = document.getElementById('opt-rotate-up');
@@ -480,12 +511,12 @@ function bindToolbar() {
   rotateUp.addEventListener('change', () => {
     state.rotateUp = rotateUp.checked;
     persistState();
-    toast(state.rotateUp ? '已启用反向轮转 rotate_up' : '已恢复默认旋转方向');
+    toast(state.rotateUp ? t('toast.rotateUpOn', '已启用反向轮转 rotate_up') : t('toast.rotateUpOff', '已恢复默认旋转方向'));
   });
   rotateAfter.addEventListener('change', () => {
     state.rotateAfterType = rotateAfter.checked;
     persistState();
-    toast(state.rotateAfterType ? '已改为加密后再步进' : '已恢复先步进后加密');
+    toast(state.rotateAfterType ? t('toast.rotateAfterOn', '已改为加密后再步进') : t('toast.rotateAfterOff', '已恢复先步进后加密'));
   });
   const layoutSelect = document.getElementById('opt-layout');
   layoutSelect.value = state.layout;
@@ -495,7 +526,7 @@ function bindToolbar() {
     ui.setAlphabet(currentAlphabet());
     ui.renderState();
     syncReadiness();
-    toast('键盘布局：' + layoutSelect.selectedOptions[0].textContent);
+    toast(t('toast.layout', '键盘布局：{name}', { name: layoutSelect.selectedOptions[0].textContent }));
   });
   document.getElementById('btn-help').addEventListener('click', () => {
     document.getElementById('dlg-help').showModal();
@@ -562,6 +593,7 @@ function showError(message) {
 }
 
 async function boot() {
+  applyI18n();
   loadState();
   ui.mount();
   ui.setAlphabet(currentAlphabet());
@@ -582,15 +614,15 @@ async function boot() {
   fitScale();
   try {
     api = await bootBridge(setBootStatus);
-    const info = api.api_info();
-    document.getElementById('footer-info').textContent =
-      `加密引擎 myenigma v${info.myenigma} · CPython ${info.python} / Pyodide (WASM)，纯前端无后端`;
+    engineInfo = api.api_info();
+    updateFooter();
     engineReady = true;
     syncReadiness();
+    updateFooter();
     setTimeout(() => document.getElementById('boot-overlay').classList.add('done'), 350);
   } catch (err) {
     console.error(err);
-    setBootStatus(`加载失败：${err.message}`, true);
+    setBootStatus(t('boot.failed', '加载失败：{msg}', { msg: err.message }), true);
     const retry = document.getElementById('boot-retry');
     retry.hidden = false;
     retry.addEventListener('click', () => window.location.reload());
