@@ -120,6 +120,10 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# Web demo generated assets (see scripts/vendor_webapp.py)
+webapp/pyodide/
+webapp/wheels/
+
 # mypy
 .mypy_cache/
 .dmypy.json

@@ -8,6 +8,21 @@ Python-based Enigma.
 
 [A brief tutorial of how to develop it (in Chinese)](https://4ading.com/posts/enigma-in-python)
 
+## Web Demo
+
+Try it in the browser: a realistic, fully interactive Enigma machine — swap and create rotors, plug and unplug cables, even custom alphabets. Everything runs client-side via Pyodide (WASM Python), no backend:
+
+**[▶ Open the web demo](https://dingjunyao.github.io/myenigma/)**
+
+Run it locally (Pyodide and the wheel are served from the same origin, no CDN; the dev server disables caching so phones always get fresh assets):
+
+```bash
+uv build --wheel
+python scripts/vendor_webapp.py --skip-build
+python scripts/serve_webapp.py 8123
+# then open http://127.0.0.1:8123/ (or http://<your-lan-ip>:8123/ on a phone)
+```
+
 ## Install
 
 ```bash

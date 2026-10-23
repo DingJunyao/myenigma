@@ -1,6 +1,45 @@
 [build-system]
 requires = [
-    "setuptools",
-    "wheel"
+    "setuptools>=77",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "myenigma"
+version = "2.0.2"
+description = "Python-based Enigma."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "DingJunyao", email = "dingjunyao0703@163.com" },
+]
+requires-python = ">=3.10"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Sociology :: History",
+    "Topic :: Education",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/DingJunyao/myenigma"
+Source = "https://github.com/DingJunyao/myenigma"
+"Bug Tracker" = "https://github.com/DingJunyao/myenigma/issues"
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+demo = [
+    "pywebio",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

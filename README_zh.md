@@ -8,6 +8,21 @@
 
 [开发这个项目的简单教程](https://4ading.com/posts/enigma-in-python)
 
+## 网页 Demo
+
+在浏览器里试用一台写实的恩尼格玛密码机：可更换、新建齿轮（转子），插拔接线板电线，甚至使用自定义字母表。全部运算通过 Pyodide（WASM 版 Python）在浏览器本地完成，无后端：
+
+**[▶ 打开网页 Demo](https://dingjunyao.github.io/myenigma/)**
+
+本地运行（Pyodide 运行时与 wheel 都从本地加载，不依赖 CDN；开发服务器已禁用缓存，手机访问总能拿到最新资源）：
+
+```bash
+uv build --wheel
+python scripts/vendor_webapp.py --skip-build
+python scripts/serve_webapp.py 8123
+# 然后打开 http://127.0.0.1:8123/（手机用 http://<局域网IP>:8123/）
+```
+
 ## 安装
 
 ```bash

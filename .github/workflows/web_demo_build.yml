@@ -1,13 +1,68 @@
-# Controls when the action will run. Triggers the workflow on push request for the master branch
+# Deploy the static web demo (Pyodide + myenigma, no backend) to GitHub Pages.
+#
+# The site is self-contained: Pyodide's WASM runtime and the myenigma wheel
+# are vendored into webapp/pyodide/ and webapp/wheels/ at build time, so the
+# page does not depend on jsDelivr or PyPI at runtime.
+#
+# One-time repo setting: Settings -> Pages -> Build and deployment ->
+# Source: "GitHub Actions".
+name: Deploy web demo to GitHub Pages
+
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'webapp/**'
+      - 'scripts/**'
+      - 'src/**'
+      - '.github/workflows/web_demo_build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-    - name: Deploy to LeanEngine
-      uses: enflo/curl-action@v1.2
-      with:
-        curl: -X POST https://cn-e1-console-api.leancloud.cn/1.1/engine/groups/web/production/version?gitTag=${{ github.sha }}&token=${{ secrets.DEPLOY_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build wheel
+        run: uv build --wheel
+
+      - name: Vendor Pyodide and wheel into the site
+        run: python3 scripts/vendor_webapp.py --skip-build
+
+      - name: Smoke test the bundled runtime
+        run: node scripts/bridge_smoke.mjs
+
+      - name: Smoke test machine readiness
+        run: node scripts/alphabet_smoke.mjs
+
+      - name: Smoke test keyboard rows
+        run: node scripts/keyboard_smoke.mjs
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: webapp
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

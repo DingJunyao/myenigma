@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myenigma · Enigma Web Demo</title>
+  <meta name="description" content="基于 Pyodide (WASM Python) 的写实恩尼格玛密码机演示：换齿轮、建齿轮、插拔电线，由 myenigma 在浏览器中完成全部加密。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23231d18' stroke='%23c8a44e' stroke-width='6'/><text x='50' y='66' font-size='48' text-anchor='middle' fill='%23e8dcc0' font-family='serif'>E</text></svg>">
+</head>
+<body>
+
+  <div id="boot-overlay">
+    <div class="boot-card">
+      <div class="boot-gear" aria-hidden="true">⚙</div>
+      <h2>myenigma Web Demo</h2>
+      <p id="boot-status">正在启动…</p>
+      <p class="boot-note">首次访问需要下载 WASM 版 Python 运行时（约 10 MB），完成后会缓存在浏览器中。</p>
+      <button id="boot-retry" class="btn" hidden>重试</button>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✳</span>
+      <h1>myenigma <small>Enigma Web Demo</small></h1>
+    </div>
+    <div class="toolbar-wrap">
+      <button id="btn-menu" class="btn menu-btn" aria-label="打开菜单" aria-expanded="false">☰</button>
+      <nav id="toolbar" class="toolbar">
+        <button id="btn-zero" class="btn" title="把所有齿轮拨回初始位置 A">归零</button>
+        <button id="btn-random" class="btn" title="随机齿轮、位置与接线">随机配置</button>
+        <button id="btn-factory" class="btn" title="恢复出厂配置（保留自定义齿轮）">恢复默认</button>
+        <button id="btn-sound" class="btn">🔊 声音开</button>
+        <button id="btn-settings" class="btn">设置</button>
+        <button id="btn-help" class="btn">帮助</button>
+        <a class="btn btn-gh" href="https://github.com/DingJunyao/myenigma" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="machine-stage">
+      <div class="machine-scale">
+        <section class="machine" aria-label="恩尼格玛密码机">
+
+          <div class="machine-top">
+            <div class="brand-plate">ENIGMA<small>CHIFFRIERMASCHINE · myenigma</small></div>
+            <div class="plate-row">
+              <div class="reflector-box">
+                <span class="box-caption">UMKEHRWALZE</span>
+                <button id="reflector-window" class="reflector-window" title="点击更换 / 新建反射板">B</button>
+              </div>
+              <div class="rotor-row" id="rotor-row"><!-- rotor units injected --></div>
+              <div class="slot-tools">
+                <button id="slot-add" class="slot-btn" title="加装一个齿轮（最多 4 个）">＋</button>
+                <button id="slot-del" class="slot-btn" title="拆下最左侧齿轮">－</button>
+                <span class="slot-caption">WALZEN</span>
+              </div>
+            </div>
+          </div>
+
+          <section class="tape-panel" aria-label="电报纸带">
+            <div class="tape-head">
+              <span class="box-caption light">FUNKSPRUCH · 电报纸带</span>
+              <div class="tape-actions">
+                <button id="tape-copy-plain" class="btn btn-small" title="复制全部明文"><span class="btn-long">复制明文</span><span class="btn-short">明文</span></button>
+                <button id="tape-copy-cipher" class="btn btn-small" title="复制全部密文"><span class="btn-long">复制密文</span><span class="btn-short">密文</span></button>
+                <button id="tape-clear" class="btn btn-small" title="清空纸带"><span class="btn-long">清空</span><span class="btn-short">清空</span></button>
+              </div>
+            </div>
+            <div class="tape-body">
+              <div id="tape-scroll" class="tape-scroll">
+                <div class="tape-row">
+                  <span class="tape-label">明文</span>
+                  <div class="tape-line" id="tape-plain"></div>
+                </div>
+                <div class="tape-row">
+                  <span class="tape-label">密文</span>
+                  <div class="tape-line" id="tape-cipher"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="machine-deck">
+            <div id="ready-hint" class="ready-hint" hidden></div>
+            <div class="deck-panel lamp-panel">
+              <span class="box-caption">LAMPENFELD</span>
+              <div id="lampboard" class="lampboard"></div>
+            </div>
+            <div class="deck-panel key-panel">
+              <span class="box-caption">TASTATUR</span>
+              <div id="keyboard" class="keyboard"></div>
+            </div>
+
+            <section id="alt-panel" class="alt-panel" hidden aria-label="自定义字母表面板">
+              <div class="alt-display">
+                <span class="box-caption">AUSGABE · 输出</span>
+                <div id="alt-output" class="alt-output">—</div>
+              </div>
+              <div class="alt-input-wrap">
+                <div class="alt-input-row">
+                  <input id="alt-input" class="alt-input" type="text" autocomplete="off" spellcheck="false"
+                         placeholder="输入或粘贴文本（支持输入法）">
+                  <button id="alt-send" class="btn btn-primary">发送</button>
+                </div>
+              </div>
+              <div id="alt-keys" class="alt-keys"></div>
+              <div class="alt-plugs-wrap">
+                <span class="box-caption">STECKER · 接线（点两个字符连接 / 点击已连字符断开）</span>
+                <div id="alt-plugs" class="alt-plugs"></div>
+                <div id="alt-pairs" class="alt-pairs">尚未接线</div>
+              </div>
+            </section>
+          </div>
+
+          <div class="machine-front">
+            <div class="plugboard-head">
+              <span class="box-caption">STECKERBRETT</span>
+              <span id="plug-count" class="plug-count">0/10</span>
+            </div>
+            <div id="plugboard" class="plugboard">
+              <svg id="plug-svg" class="plug-svg"></svg>
+              <div id="plug-grid" class="plug-grid"></div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span id="footer-info">正在加载加密引擎…</span>
+    <span>
+      <a href="https://github.com/DingJunyao/myenigma" target="_blank" rel="noopener">myenigma</a>
+      · <a href="https://4ading.com/posts/enigma-in-python" target="_blank" rel="noopener">开发教程</a>
+      · MIT License
+    </span>
+  </footer>
+
+  <div id="toast-area" aria-live="polite"></div>
+  <button id="err-chip" hidden title="点击查看控制台"></button>
+
+  <dialog id="dlg-inventory" class="dialog">
+    <div class="dialog-head">
+      <h3 id="inventory-title">齿轮仓库</h3>
+      <button class="dialog-close" data-close title="关闭">✕</button>
+    </div>
+    <div id="inventory-grid" class="inventory-grid"></div>
+    <div class="dialog-foot">
+      <span class="dialog-hint">自定义齿轮保存在本机浏览器中</span>
+      <button id="inventory-new" class="btn btn-accent">＋ 新建齿轮</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-editor" class="dialog">
+    <div class="dialog-head">
+      <h3 id="editor-title">齿轮编辑器</h3>
+      <button class="dialog-close" data-close title="关闭">✕</button>
+    </div>
+    <div class="editor-form">
+      <label class="field">
+        <span>名称</span>
+        <input id="editor-name" type="text" maxlength="40" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>字母表 map_source（互不相同的字符，默认 A–Z）</span>
+        <input id="editor-map-source" type="text" spellcheck="false" autocomplete="off">
+        <span class="field-note">整机共用一套字母表：反射板与全部齿轮的字符集一致时，键盘/灯盘/插线板才会启用；顺序不同视为同一字母表（安装时自动按整机顺序重排，行为不变）。非 26 个拉丁字母时，键盘/灯盘/插线板会换成通用字符面板。</span>
+      </label>
+      <label class="field">
+        <span>接线 map_table（第 i 个字符 = 字母表第 i 个字符被映射到的字符）</span>
+        <input id="editor-map-table" type="text" spellcheck="false" autocomplete="off" class="mono">
+      </label>
+      <div class="editor-tools">
+        <button id="editor-identity" class="btn" type="button">直连</button>
+        <button id="editor-random" class="btn" type="button">随机接线</button>
+        <span id="editor-message" class="editor-message"></span>
+      </div>
+      <div id="editor-turnover-wrap" class="field">
+        <span>转换点（经过这些字符时带动左侧齿轮；不选 = 默认最后一个字符）</span>
+        <div id="editor-turnover-chips" class="chip-row"></div>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" data-close>取消</button>
+      <button id="editor-save" class="btn btn-primary">保存</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-settings" class="dialog">
+    <div class="dialog-head">
+      <h3>设置</h3>
+      <button class="dialog-close" data-close title="关闭">✕</button>
+    </div>
+    <div class="settings-body">
+      <label class="switch-row">
+        <span class="switch-text">
+          <b>反向轮转 rotate_up</b>
+          <small>转轮旋转的字母序方向。标准恩尼格玛为关；README 微型中文机示例需开启。</small>
+        </span>
+        <input id="opt-rotate-up" type="checkbox" class="switch-input">
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="switch-row">
+        <span class="switch-text">
+          <b>后步进 rotate_after_type</b>
+          <small>步进时机：开 = 先加密后步进；关（标准机）= 先步进后加密。</small>
+        </span>
+        <input id="opt-rotate-after" type="checkbox" class="switch-input">
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="field switch-row">
+        <span class="switch-text">
+          <b>键盘布局</b>
+          <small>屏幕键盘的字母排布，仅对 26 个拉丁字母生效；物理键盘输入不受影响。</small>
+        </span>
+        <select id="opt-layout" class="settings-select">
+          <option value="qwertz">QWERTZ（标准恩尼格玛）</option>
+          <option value="qwerty">QWERTY</option>
+          <option value="azerty">AZERTY</option>
+          <option value="dvorak">Dvorak</option>
+          <option value="abc">A–Z 字母序</option>
+        </select>
+      </label>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn btn-primary" data-close>完成</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-help" class="dialog">
+    <div class="dialog-head">
+      <h3>操作说明</h3>
+      <button class="dialog-close" data-close title="关闭">✕</button>
+    </div>
+    <div class="help-body">
+      <ol>
+        <li><b>加密</b>：直接敲键盘（或用鼠标点击键盘），灯盘亮起的字母即为密文；电报纸带会记录「明文 › 密文」。</li>
+        <li><b>调节齿轮</b>：点击齿轮旁的 ▲▼ 或在齿轮盘上滚动滚轮；机器每次加密前会像真机一样自动步进。</li>
+        <li><b>更换齿轮</b>：点击齿轮盘打开齿轮仓库，可装入 I–VIII、Beta、Gamma，也可编辑、新建自定义齿轮——自定义接线、转换点，甚至自定义字母表（例如「甲乙丙丁」）。</li>
+        <li><b>插线板</b>：先点一个插座，再点另一个即可接上电线；点击电线或已连接的插座可拔下。最多 10 根（与真机相同）。</li>
+        <li><b>反射板</b>：点击左上角的反射板窗口，可更换 B / C / B-thin / C-thin 或新建反射板。</li>
+        <li><b>解密</b>：恩尼格玛是自反的——把所有齿轮调回加密时的初始位置，重新敲入密文，灯盘就会亮出明文。</li>
+        <li><b>粘贴即输入</b>：在页面上直接粘贴文本，会自动忽略字母表以外的字符，并以匀速逐字加密演示（按 Esc 可中途停止）。</li>
+        <li><b>键盘布局</b>：顶部「设置」对话框里可切换 QWERTZ / QWERTY / AZERTY / Dvorak / A–Z 顺序（仅 26 个拉丁字母生效；排布与真实键盘一致，9/8/9 三行；物理键盘输入不受影响）。手机上按键会自动放大并填满整行宽度。</li>
+        <li><b>机械设置</b>：顶部「设置」对话框中的「反向轮转 rotate_up」与「后步进 rotate_after_type」对应库的 Enigma 构造参数；复现 README 的微型中文机示例（甲乙丙丁）时需同时打开。</li>
+        <li><b>自定义字母表</b>：齿轮与反射板可以随意创建、替换，但整机要求二者字母表一致——安装齐全后键盘/灯盘/插线板才会启用（未齐时机器上方会有提示）。字母表不是 26 个拉丁字母时，它们会换成通用字符面板：点击字符、在输入框输入后点「发送」或回车。</li>
+      </ol>
+      <p>所有运算都由 <a href="https://github.com/DingJunyao/myenigma" target="_blank" rel="noopener">myenigma</a> 在浏览器内的 WASM Python（Pyodide）中完成：<b>没有后端服务器</b>。齿轮仓库与配置保存在浏览器本地。</p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn btn-primary" data-close>明白了</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
