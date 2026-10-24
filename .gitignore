@@ -124,6 +124,15 @@ venv.bak/
 webapp/pyodide/
 webapp/wheels/
 
+# Xiaohongshu minitool build outputs (see minitool/build.py)
+minitool/icon/
+minitool/*.zip
+
+# Local security-scan / agent tooling
+.mimosa/
+.mimosa/**
+.skill/
+
 # mypy
 .mypy_cache/
 .dmypy.json

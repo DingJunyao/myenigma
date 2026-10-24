@@ -23,6 +23,22 @@ python scripts/serve_webapp.py 8123
 # then open http://127.0.0.1:8123/ (or http://<your-lan-ip>:8123/ on a phone)
 ```
 
+## Xiaohongshu Mini Tool
+
+`minitool/` is the same machine rebuilt as an offline H5 page for the Xiaohongshu (RED) mini-tool container and packaged into an uploadable zip. The container forbids WebAssembly, so the Pyodide runtime is replaced by `minitool/js/engine.js` — a pure-JavaScript port of this library with the identical algorithm, bridge API and error messages. The UI keeps every feature (rotor warehouse, custom alphabets, plugboard, paper tape, i18n) while following the container rules: classic scripts, Chrome 61 baseline, no clipboard/network APIs.
+
+```bash
+# differential test: the JS engine vs this Python library
+python minitool/test/gen_expected.py        # needs myenigma installed
+node minitool/test/check_engine.mjs         # 60 random configs + validators
+node minitool/test/smoke_dom.mjs            # DOM smoke test of the whole UI
+
+# stage dist/ and build the upload zip (index.html at the zip root)
+python minitool/build.py
+```
+
+`minitool/myenigma-minitool.zip` is the artifact to upload; build outputs (`dist/`, the zip) are not committed.
+
 ## Install
 
 ```bash

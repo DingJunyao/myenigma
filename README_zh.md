@@ -23,6 +23,22 @@ python scripts/serve_webapp.py 8123
 # 然后打开 http://127.0.0.1:8123/（手机用 http://<局域网IP>:8123/）
 ```
 
+## 小红书小工具
+
+`minitool/` 是同一台机器面向小红书小工具容器改写的离线 H5 页面，打包为可直接上传的 zip。容器禁止 WebAssembly，因此 Pyodide 运行时被 `minitool/js/engine.js` 取代——本库的纯 JavaScript 移植，算法、桥接 API 与错误信息完全一致。界面保留全部功能（齿轮仓库、自定义字母表、插线板、电报纸带、双语），并遵守容器规则：经典脚本、Chrome 61 基线、无剪贴板/网络 API。
+
+```bash
+# 对拍测试：JS 引擎 vs 本 Python 库
+python minitool/test/gen_expected.py        # 需已安装 myenigma
+node minitool/test/check_engine.mjs         # 60 组随机配置 + 校验器
+node minitool/test/smoke_dom.mjs            # 整个 UI 的 DOM 冒烟测试
+
+# 暂存 dist/ 并生成待上传 zip（index.html 位于 zip 根目录）
+python minitool/build.py
+```
+
+上传产物为 `minitool/myenigma-minitool.zip`；构建产物（`dist/`、zip）不提交入库。
+
 ## 安装
 
 ```bash
