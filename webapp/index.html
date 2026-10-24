@@ -6,7 +6,7 @@
   <title>myenigma · Enigma Web Demo</title>
   <meta name="description" content="基于 Pyodide (WASM Python) 的写实恩尼格玛密码机演示：换齿轮、建齿轮、插拔电线，由 myenigma 在浏览器中完成全部加密。">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23231d18' stroke='%23c8a44e' stroke-width='6'/><text x='50' y='66' font-size='48' text-anchor='middle' fill='%23e8dcc0' font-family='serif'>E</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
 </head>
 <body>
 
@@ -64,6 +64,7 @@
             <div class="tape-head">
               <span class="box-caption light" data-i18n="tape.caption">FUNKSPRUCH · 电报纸带</span>
               <div class="tape-actions">
+                <button id="tape-paste" class="btn btn-small" title="读取剪贴板并加密" data-i18n-title="tape.paste.title"><span class="btn-long" data-i18n="tape.paste">粘贴加密</span><span class="btn-short" data-i18n="tape.paste.short">粘贴</span></button>
                 <button id="tape-copy-plain" class="btn btn-small" title="复制全部明文" data-i18n-title="tape.copyPlain.title"><span class="btn-long" data-i18n="tape.copyPlain">复制明文</span><span class="btn-short" data-i18n="tape.copyPlain.short">明文</span></button>
                 <button id="tape-copy-cipher" class="btn btn-small" title="复制全部密文" data-i18n-title="tape.copyCipher.title"><span class="btn-long" data-i18n="tape.copyCipher">复制密文</span><span class="btn-short" data-i18n="tape.copyCipher.short">密文</span></button>
                 <button id="tape-clear" class="btn btn-small"><span class="btn-long" data-i18n="tape.clear">清空</span><span class="btn-short" data-i18n="tape.clear.short">清空</span></button>
@@ -263,6 +264,21 @@
     </div>
     <div class="dialog-foot">
       <button class="btn btn-primary" data-close data-i18n="help.done">明白了</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-paste" class="dialog">
+    <div class="dialog-head">
+      <h3 data-i18n="paste.title">粘贴文本</h3>
+      <button class="dialog-close" data-close title="关闭">✕</button>
+    </div>
+    <div class="copy-body">
+      <p class="copy-hint" data-i18n="paste.hint">自动读取剪贴板失败（未授权或不支持）：请在下方粘贴（Ctrl+V / 长按），然后点「发送」。</p>
+      <textarea id="paste-text" class="copy-text" rows="5" data-i18n-ph="paste.placeholder" placeholder="在此粘贴要加密的文本…"></textarea>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" data-close data-i18n="editor.cancel">取消</button>
+      <button id="paste-send" class="btn btn-primary" data-i18n="alt.send">发送</button>
     </div>
   </dialog>
 

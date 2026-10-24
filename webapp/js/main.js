@@ -352,6 +352,38 @@ async function copyTape(kind) {
   }
 }
 
+// Paste clipboard content into the machine. readText() needs a user gesture
+// and a permission prompt; when it fails (denied, unsupported, or plain
+// http), fall back to a manual paste box.
+async function pasteFromClipboard() {
+  let text = '';
+  try {
+    text = await navigator.clipboard.readText();
+  } catch (err) {
+    // permission denied or API unavailable — fall through to the dialog
+  }
+  if (text && text.trim()) {
+    feedText(text);
+    return;
+  }
+  openPasteDialog();
+}
+
+function openPasteDialog() {
+  const box = document.getElementById('paste-text');
+  box.value = '';
+  document.getElementById('dlg-paste').showModal();
+  box.focus();
+}
+
+function submitPaste() {
+  const box = document.getElementById('paste-text');
+  const text = box.value;
+  box.value = '';
+  document.getElementById('dlg-paste').close();
+  if (text.trim()) feedText(text);
+}
+
 // Horizontal drag scrolling for the paper tape (mouse and touch friendly).
 function enableDragScroll(el) {
   let dragging = false;
@@ -488,6 +520,8 @@ function bindToolbar() {
   document.getElementById('btn-random').addEventListener('click', randomize);
   document.getElementById('btn-factory').addEventListener('click', factoryReset);
   document.getElementById('tape-clear').addEventListener('click', tapeClear);
+  document.getElementById('tape-paste').addEventListener('click', pasteFromClipboard);
+  document.getElementById('paste-send').addEventListener('click', submitPaste);
   document.getElementById('tape-copy-plain').addEventListener('click', () => copyTape('plain'));
   document.getElementById('tape-copy-cipher').addEventListener('click', () => copyTape('cipher'));
   enableDragScroll(document.getElementById('tape-scroll'));  const soundBtn = document.getElementById('btn-sound');
